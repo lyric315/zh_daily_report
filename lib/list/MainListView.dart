@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zh_daily_report/common/Constants.dart';
 import 'package:zh_daily_report/list/data/ListDataHelper.dart';
+import 'package:zh_daily_report/list/data/NewsDetailHelper.dart';
 import 'package:zh_daily_report/model/HotNewsModel.dart';
+import 'package:zh_daily_report/model/NewsDetailModel.dart';
+import 'package:zh_daily_report/pages/DetailPage.dart';
 import 'package:zh_daily_report/util/CollectionUtils.dart';
 import 'package:zh_daily_report/widget/CommonDivider.dart';
 import 'package:zh_daily_report/widget/CommonLoadingDialog.dart';
@@ -19,7 +22,7 @@ class MainListView extends StatefulWidget {
 }
 
 class MainListViewState extends State<MainListView>
-    implements IListDataListener {
+    implements IListDataListener, IDetailDataListener {
   final GlobalKey<RefreshIndicatorState> mRefreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
 
@@ -33,6 +36,8 @@ class MainListViewState extends State<MainListView>
   ScrollController mScrollController;
 
   ListDataHelper mListDataHelper;
+
+  NewsDetailDataHelper mNewsDetailHelper;
 
   void _scrollListener() {
     //滑到最底部刷新
@@ -53,6 +58,7 @@ class MainListViewState extends State<MainListView>
     super.initState();
     mScrollController = new ScrollController()..addListener(_scrollListener);
     mListDataHelper = new ListDataHelper(this);
+    mNewsDetailHelper = new NewsDetailDataHelper(this);
     _refreshData();
   }
 
@@ -122,6 +128,7 @@ class MainListViewState extends State<MainListView>
         onTap: () {
           // TODO 跳转到详情页
           //RouteUtil.route2Detail(context, '$id');
+          _tryGetNewsDetail(id);
         },
         child: new Padding(
             padding: const EdgeInsets.only(left: 12.0, right: 12.0),
@@ -224,5 +231,26 @@ class MainListViewState extends State<MainListView>
     }
 
     setState(() {});
+  }
+
+  void _tryGetNewsDetail(int newsId) {
+    if (mNewsDetailHelper != null) {
+      mNewsDetailHelper.tryGetNewsDetailData(newsId);
+    }
+  }
+
+  @override
+  void onNewsDetailFail() {
+    // TODO: implement onNewsDetailFail
+  }
+
+  @override
+  void onNewsDetailSuc(NewsDetailModel model) {
+    // TODO: implement onNewsDetailSuc
+    if (model != null) {
+      Navigator.push(context, new MaterialPageRoute(builder: (context) {
+        return new DetailPage(model.mShareUrl, model.mTitle);
+      }));
+    }
   }
 }
